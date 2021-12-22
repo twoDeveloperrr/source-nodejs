@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sadari-test
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: sadari-test
+  name: sadari-dp
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: app-sadari
+  replicas: 2 
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: app-sadari
+    spec:
+      containers:
+      - image:  924926213084.dkr.ecr.ap-northeast-2.amazonaws.com/twodeveloper:8
+        imagePullPolicy: Always
+        name: app-sadari
+        ports:
+        - containerPort: 3000 
+        envFrom:
+        - configMapRef:
+            name: config-dev
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: sadari-test
+  name: sadari-svc
+spec:
+  ports:
+    - port: 3000 
+      targetPort: 3000
+      protocol: TCP
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: app-sadari
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  namespace: sadari-test
+  name: sadari-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: sadari-svc
+              servicePort: 3000

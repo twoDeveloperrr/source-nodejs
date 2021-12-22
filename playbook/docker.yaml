@@ -1,0 +1,29 @@
+- name: Build and Push Docker Image
+  hosts: ansible_host
+  gather_facts: false
+
+  tasks:
+  - name: Build Docker Image
+    command: docker image build -t webapp .
+  - name: Login ECR
+    shell: $(aws ecr get-login --no-include-email --region ap-northeast-2)
+  - name: Image to Tag
+    command: docker tag webapp:latest 866969141991.dkr.ecr.ap-northeast-2.amazonaws.com/sadari-backend:{{ tag }}
+  - name: Push Image to ECR
+    command: docker push 866969141991.dkr.ecr.ap-northeast-2.amazonaws.com/sadari-backend:{{ tag }}
+  - name: Remove Local Image
+    command: docker image rm 866969141991.dkr.ecr.ap-northeast-2.amazonaws.com/sadari-backend:{{ tag }}
+
+- name: Run Docker Container
+  hosts: docker_host
+  gather_facts: false
+
+  tasks:
+  - name: Login ECR
+    shell: $(aws ecr get-login --no-include-email --region ap-northeast-2)
+  - name: Stop Existed Container
+    command: docker stop webapp
+  - name: Remove Existed Container
+    command: docker rm webapp
+  - name: Run Container
+    command: docker run -d --name webapp -p 3000:3000 866969141991.dkr.ecr.ap-northeast-2.amazonaws.com/sadari-backend:{{ tag }}
