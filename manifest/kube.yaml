@@ -20,7 +20,7 @@ spec:
         app.kubernetes.io/name: app-sadari
     spec:
       containers:
-      - image:  924926213084.dkr.ecr.ap-northeast-2.amazonaws.com/twodeveloper:12
+      - image:  924926213084.dkr.ecr.ap-northeast-2.amazonaws.com/twodeveloper:13
         imagePullPolicy: Always
         name: app-sadari
         ports:
